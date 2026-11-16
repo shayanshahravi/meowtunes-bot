@@ -19,11 +19,15 @@ documented contract is below and executable via `test_vasl_api.py`.
 - Free-text search: type anything and pick *Track / Artist / Album* from inline buttons.
 - Native Telegram audio (`send_audio`) with `title`, `performer`, `duration` and cover-art thumbnail,
   so tracks appear in Telegram's music player.
+- Reliable delivery: files up to ~20 MB are sent by URL (Telegram fetches the public CDN, no upload),
+  larger files are uploaded with a long timeout, and anything over 25 MB is delivered as a direct
+  download link so a slow connection never makes the bot hang.
 
 **Requires a linked Vasl account**
 
-- `/connect` → paste the `vasl_jwt_token` from your browser session (stored encrypted-at-rest by file
-  permissions in SQLite, tied to your Telegram id).
+- `/connect` → paste the `vasl_jwt_token` from your browser session. It is stored in the local SQLite
+  file (`chmod 0600`), tied to your Telegram id, and only used for `/music/liked`. A one-click
+  bookmarklet that copies the token on `vasl.social` is shown right in the `/connect` message.
 - Background watcher polls `GET /music/liked` every `FAV_POLL_SECONDS` (default 15 s) and instantly
   pushes newly liked tracks with the caption *«❤️ موزیک جدیدی که در وصل (MeowTunes) لایک کردید:»*.
 - Existing favorites are **seeded silently** on connect, so only *new* likes are auto-sent; `/sync`

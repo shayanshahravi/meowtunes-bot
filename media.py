@@ -19,6 +19,12 @@ log = logging.getLogger(__name__)
 
 FAV_CAPTION = "❤️ موزیک جدیدی که در وصل (MeowTunes) لایک کردید:"
 
+# Telegram fetches audio by URL only up to ~20 MB; larger files must be uploaded.
+URL_FETCH_LIMIT = 20 * 1024 * 1024
+# Above this size an upload over a typical home connection takes minutes, so a
+# direct download link is delivered instead of blocking the handler.
+MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+
 
 def _safe_name(track: Track) -> str:
     base = f"{track.artist} - {track.title}" if track.artist else track.title
@@ -59,9 +65,10 @@ async def send_track(
     # Bot API needs an uploaded thumbnail, not a URL (aiogram validates InputFile).
     thumbnail = await _thumbnail(client, track.cover_url)
 
-    # Preferred: let Telegram fetch the public CDN URL. Uploading tens of MB
-    # from a slow home connection is what caused the send timeouts.
-    if track.audio_url:
+    size = track.size
+    # Preferred: let Telegram fetch the public CDN URL. This avoids uploading
+    # tens of MB over a slow connection, which caused the send timeouts.
+    if track.audio_url and (size is None or size <= URL_FETCH_LIMIT):
         try:
             await bot.send_audio(
                 chat_id=chat_id,
@@ -78,6 +85,16 @@ async def send_track(
             log.warning("send_audio(url) rejected, trying upload: %s", exc)
         except TelegramAPIError as exc:
             log.warning("send_audio(url) failed, trying upload: %s", exc)
+
+    # Too large to upload reliably: deliver a direct link instead of blocking.
+    if track.audio_url and size is not None and size > MAX_UPLOAD_BYTES:
+        await _safe_send_message(
+            bot,
+            chat_id,
+            f"{caption}\n\n⚠️ حجم فایل ({size // (1024 * 1024)} مگابایت) برای ارسال در تلگرام "
+            f'بیش از حد است؛ <a href="{html.escape(track.audio_url)}">دانلود مستقیم</a>',
+        )
+        return True
 
     try:
         data, _content_type = await client.download_audio(
@@ -124,8 +141,15 @@ async def send_track(
         log.warning("send_audio rejected, falling back to document: %s", exc)
     except TelegramAPIError as exc:
         log.warning("send_audio failed: %s", exc)
+        link = (
+            f'\n<a href="{html.escape(track.audio_url)}">دانلود مستقیم</a>'
+            if track.audio_url
+            else ""
+        )
         await _safe_send_message(
-            bot, chat_id, f"⚠️ ارسال «{html.escape(track.title)}» ناموفق بود: {html.escape(str(exc))}"
+            bot,
+            chat_id,
+            f"⚠️ ارسال «{html.escape(track.title)}» ناموفق بود: {html.escape(str(exc))}{link}",
         )
         return False
     except Exception:  # a send must never fail silently
