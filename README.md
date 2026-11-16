@@ -1,5 +1,7 @@
 # MeowTunes Telegram Bot
 
+**English** | [فارسی](README.fa.md)
+
 Telegram bot for [Vasl Social → MeowTunes](https://vasl.social/meowtunes): search tracks, artists and
 albums, receive the actual audio file in Telegram, and — after linking a Vasl account — get every
 track you **like on MeowTunes** pushed to your chat automatically.
