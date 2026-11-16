@@ -1,0 +1,36 @@
+{
+  "name": "meowtunes-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for MeowTunes playlist download",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "jest --passWithNoTests",
+    "test:worker": "jest tests/worker.test.ts --no-coverage",
+    "start": "node dist/main.js",
+    "dev": "ts-node src/main.ts",
+    "dev:worker": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:dry-run": "wrangler deploy --dry-run",
+    "webhook:set": "node scripts/set-webhook.mjs"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "node-fetch": "^2.7.0",
+    "node-telegram-bot-api": "^0.64.0",
+    "telegraf": "^4.16.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@types/node-fetch": "^2.6.13",
+    "@types/node-telegram-bot-api": "^0.64.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.2.0",
+    "wrangler": "^4.142.0",
+    "ts-node": "^10.9.2"
+  }
+}

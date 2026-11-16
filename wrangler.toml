@@ -1,0 +1,12 @@
+name = "meowtunes-telegram-bot"
+main = "src/worker/entry.ts"
+compatibility_date = "2025-09-01"
+
+[vars]
+MEOWTUNES_BASE_URL = "https://api2.vasl.social/api"
+
+# Production secrets (NEVER commit values here — set via `wrangler secret put`):
+#   TELEGRAM_BOT_TOKEN
+#   TELEGRAM_WEBHOOK_SECRET
+#   OWNER_TELEGRAM_USER_ID
+#   MEEWTUNES_BEARER_TOKEN

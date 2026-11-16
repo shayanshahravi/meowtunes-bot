@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+coverage/
+*.test.js
+*.spec.js
+
+# Python bot
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+data/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Freebuff / editor
+.freebuff/
+.ruff_cache/
+*.pyc
+Untitled Document

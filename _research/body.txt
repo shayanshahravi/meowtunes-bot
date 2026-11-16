@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/webp" href="/v.webp" />
+    <!-- iOS takes the home-screen icon from here, NOT from manifest.json's
+         icons array. Without it an installed web app gets a screenshot of the
+         page as its icon. Pre-flattened on the brand background because iOS
+         composites transparency onto black. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- ADAPT-2026-07-31.
+         `maximum-scale=1, user-scalable=no` removed: it disabled pinch-zoom
+         app-wide, which is a WCAG 1.4.4 (AA) failure — low-vision users had no
+         magnification path at all, and the in-app --font-scale control is not a
+         substitute for viewport zoom. iOS auto-zooms a focused input under 16px,
+         which is the reason this flag usually gets added; that is handled
+         properly by the (pointer: coarse) font-size floor at the end of App.css.
+         X03: the chat composer is exempt from that floor (it is the bubble's
+         14px); on iOS the script right below stops its focus zoom instead.
+
+         `viewport-fit=cover` added: without it env(safe-area-inset-*) resolves
+         to 0, so the 14 safe-area rules already written across this codebase —
+         including .navContainer's home-indicator lift — were dead code. This
+         entry declares apple-mobile-web-app-status-bar-style: black-translucent,
+         so an installed PWA already drew under the status bar with nothing
+         compensating for it. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <script>
+      // X03: iOS only. Since iOS 10 every iOS browser ignores maximum-scale for
+      // the user's own pinch, so this is NOT a zoom lock there — it only stops
+      // the automatic zoom when a field under 16px takes focus (the composer).
+      // Android honours it as a lock, which is why it never runs there. Same
+      // test as App.jsx isIosDevice (iPadOS 13+ reports itself as a Mac).
+      (function () {
+        var ua = navigator.userAgent || '';
+        if (!(/iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1))) return;
+        var m = document.querySelector('meta[name="viewport"]');
+        if (m) m.setAttribute('content', m.getAttribute('content') + ', maximum-scale=1');
+      })();
+    </script>
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vasl" />
+    <meta name="theme-color" content="#1a0933">
+
+    <!-- ── SEO ──────────────────────────────────────────────────────────────
+         The app renders for logged-out readers now, so the feed is genuinely
+         crawlable and these tags are what a search result is built from. The
+         page had a title tag and nothing else: no description (so Google
+         invents one from whatever text it finds first), no canonical (so
+         vasl.fun / vasl.vayrex.ir redirects and ?query variants each look
+         like a separate page), and no OG at all (so the bare domain previewed
+         as a naked link in every chat app).
+
+         Per-vasl pages override all of this server-side, see
+         server/routes/share.js. /meowtunes has its own entry with its own
+         copy. These are the site-level defaults. -->
+    <meta name="description" content="وصل، شبکه اجتماعی فارسی برای به اشتراک گذاشتن عکس، ویدیو، موزیک و متن. وصل‌های تازه رو ببین، موزیک گوش کن و با بقیه چت کن.">
+    <link rel="canonical" href="https://vasl.social/">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+
+    <meta property="og:site_name" content="Vasl">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vasl.social/">
+    <meta property="og:title" content="وصل - هر روز وصل تر از دیروز">
+    <meta property="og:description" content="شبکه اجتماعی فارسی برای عکس، ویدیو، موزیک و متن. بدون اکانت هم می‌تونی وصل‌ها و موزیک رو ببینی.">
+    <meta property="og:image" content="https://vasl.social/icon-512.png">
+    <meta property="og:locale" content="fa_IR">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="وصل - هر روز وصل تر از دیروز">
+    <meta name="twitter:description" content="شبکه اجتماعی فارسی برای عکس، ویدیو، موزیک و متن.">
+    <meta name="twitter:image" content="https://vasl.social/icon-512.png">
+
+    <!-- WebSite + SearchAction is what lets Google show a search box for the
+         site in results. The URL template points at the feed's own search
+         param, which the client reads on boot. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://vasl.social/#website",
+          "url": "https://vasl.social/",
+          "name": "وصل",
+          "alternateName": "Vasl",
+          "description": "شبکه اجتماعی فارسی برای عکس، ویدیو، موزیک و متن",
+          "inLanguage": "fa-IR",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://vasl.social/?search={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://vasl.social/#org",
+          "name": "وصل",
+          "url": "https://vasl.social/",
+          "logo": "https://vasl.social/icon-512.png"
+        }
+      ]
+    }
+    </script>
+
+    <script>
+      (function () {
+        var bg = {
+          purple:   '#1a0933',
+          midnight: '#0a1226',
+          emerald:  '#062019',
+          crimson:  '#1f0a12',
+          mono:     '#111113',
+          light:    '#faf5ff'
+        };
+        var theme = 'purple';
+        try {
+          var t = localStorage.getItem('vasl_theme');
+          if (t && bg[t]) theme = t;
+        } catch (e) {}
+        if (theme !== 'purple') {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.setAttribute('content', bg[theme]);
+      })();
+    </script>
+
+    <link rel="manifest" href="/manifest.json" />
+    <title>وصل - هر روز وصل تر از دیروز</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif, 'Vazir', 'Tahoma';
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        direction: rtl;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/modulepreload-polyfill-3cfb730f.js"></script>
+    <script type="module" crossorigin src="/assets/react-967c37d0.js"></script>
+    <script type="module" crossorigin src="/assets/vendor-1028b395.js"></script>
+    <script type="module" crossorigin src="/assets/react-dom-94bac345.js"></script>
+    <script type="module" crossorigin src="/assets/icons-11c133ed.js"></script>
+    <script type="module" crossorigin src="/assets/socket-8f7d9a3e.js"></script>
+    <script type="module" crossorigin src="/assets/md-7d64348f.js"></script>
+    <script type="module" crossorigin src="/assets/date-fns-6c115da2.js"></script>
+    <script type="module" crossorigin src="/assets/main-2292cccb.js"></script>
+    <link rel="stylesheet" href="/assets/vendor-ee2a3160.css">
+    <link rel="stylesheet" href="/assets/main-901eb28b.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <!--
+      Cap (proof-of-work captcha) widget.
+      CAP_CUSTOM_WASM_URL pins the SHA-256 PoW solver to our local copy
+      so the widget never reaches out to jsDelivr at runtime.
+    -->
+    <script>
+      window.CAP_CUSTOM_WASM_URL = '/cap/cap_wasm_bg.wasm';
+    </script>
+    <script defer src="/cap/cap.min.js"></script>
+  </body>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw2.js')
+          .then(() => console.log('SW registered'))
+          .catch(err => console.log('SW failed:', err));
+      });
+    }
+  </script>
+</html> 
